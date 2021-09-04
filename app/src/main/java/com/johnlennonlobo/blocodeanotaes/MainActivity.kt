@@ -50,10 +50,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         textAnnotation = editTextAnnotation.text.toString()
-        if (textAnnotation == "") {
-            super.onBackPressed()
-
-        } else {
             AlertDialog.Builder(this)
                 .setTitle("Salva Anotação")
                 .setMessage("Deseja salvar a anotação antes de sair?")
@@ -68,8 +64,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 .create()
                 .show()
-        }
+
     }
-
-
 }
