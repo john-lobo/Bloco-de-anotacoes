@@ -3,56 +3,73 @@ package com.johnlennonlobo.blocodeanotaes
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
+import android.view.View
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import com.johnlennonlobo.blocodeanotaes.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var editTextAnnotation: EditText
+    private lateinit var preferences: AnnotationPreferences
+    private lateinit var textAnnotation: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding=ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+        editTextAnnotation = findViewById(R.id.editTextAnnotation)
+        preferences = AnnotationPreferences(applicationContext)
 
-        val navController=findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration=AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+        var retrieveAnnotation = preferences.retrieveAnnotation()
+        if(retrieveAnnotation != ""){
+            editTextAnnotation.setText(retrieveAnnotation)
+        }
 
         binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            textAnnotation = editTextAnnotation.text.toString()
+            if (textAnnotation == "") {
+                showMessage(view,"Preencha a anotação!")
+
+            } else {
+                preferences.saveAnnotation(textAnnotation)
+                showMessage(view,"Anotação salva com sucesso!")
+            }
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
+    private fun showMessage(view: View, message:String) {
+        val snackbar = Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+        snackbar.view.setBackgroundColor(ContextCompat.getColor(this, R.color.brown_200))
+        snackbar.show()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+    override fun onBackPressed() {
+        textAnnotation = editTextAnnotation.text.toString()
+        if (textAnnotation == "") {
+            super.onBackPressed()
+
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("Salva Anotação")
+                .setMessage("Deseja salvar a anotação antes de sair?")
+
+                .setPositiveButton("SIM") { _, _ ->
+                    preferences.saveAnnotation(textAnnotation)
+                    super.onBackPressed()
+                }
+
+                .setNegativeButton("NÃO") { _, _ ->
+                    super.onBackPressed()
+                }
+                .create()
+                .show()
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController=findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
-    }
+
 }
